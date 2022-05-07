@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="index.css" />
+    <script defer src="index.js"></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <main>
+      <div class="wrapper flex column">
+        <div id="box" class="box">
+          <div>
+            <input
+              class="boxField data-kelompok"
+              maxlength="7"
+              type="text"
+              required
+            />
+            <input
+              class="boxField frequency"
+              type="number"
+              maxlength="3"
+              required
+            />
+            <button class="boxField" onclick="deleteElement(this)">Del</button>
+          </div>
+        </div>
+        <div class="flex">
+          <select class="boxField" id="method">
+            <option value="mk">Mean Kelompok</option>
+          </select>
+          <button class="boxField" id="plus">add</button>
+          <button class="boxField" id="submit">submit</button>
+        </div>
+      </div>
+    </main>
+    <section id="resultWrapper">
+      <div id="eachKelompok"></div>
+      <hr />
+      <div id="finalResult"></div>
+    </section>
+  </body>
+</html>
