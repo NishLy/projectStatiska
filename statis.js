@@ -8,6 +8,10 @@ function medianFinder(interval) {
   return median;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Main Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function medianKelompok(
   arrKelompok,
   arrFrequency,
@@ -30,42 +34,98 @@ function modusKelompok(arrKelompok, arrFrequency, modusIndex) {
   const tepiBawah = arrKelompok[modusIndex].split("-")[0] - 0.5;
   const d1 = arrFrequency[modusIndex] - arrFrequency[modusIndex - 1];
   const d2 = arrFrequency[modusIndex] - arrFrequency[modusIndex + 1];
-  console.log(modusIndex, d1, d2, tepiBawah, interval);
   const result = tepiBawah + (d1 / (d1 + d2)) * interval;
   return result;
 }
 
-export function mainThread(arrKelompok, arrFrequency) {
-  //declare variables
-  let dataKelompok = [];
-  let fiXiTotal = 0;
+function meanKelompok(fiXiTotal, frequencyTotal) {
+  return fiXiTotal / frequencyTotal;
+}
+
+function deviasiRataRataKelompok(arrFrequency, data, mean, frequencyTotal) {
+  let fiXITotalAbs = 0;
+  data.forEach((e, i) => {
+    fiXITotalAbs += Math.abs(e.median - mean) * arrFrequency[i];
+  });
+  const result = fiXITotalAbs / frequencyTotal;
+  return result;
+}
+
+function deviasiStandardKelompok(arrFrequency, data, mean, frequencyTotal) {
+  let fiXITotal2 = 0;
+  data.forEach((e, i) => {
+    fiXITotal2 += (e.median - mean) ** 2 * arrFrequency[i];
+  });
+  const result = Math.sqrt(fiXITotal2 / frequencyTotal);
+  return result;
+}
+
+function deviasiVariasiKelompok(arrFrequency, data, mean, frequencyTotal) {
+  const standard = deviasiStandardKelompok(
+    arrFrequency,
+    data,
+    mean,
+    frequencyTotal
+  );
+  return standard ** 2;
+}
+
+export function mainThreadKelompok(arrKelompok, arrFrequency) {
+  //find n freq
   let frequencyTotal = 0;
+  arrFrequency.forEach((e, i) => (frequencyTotal += arrFrequency[i]));
 
-  parser(arrFrequency);
+  //declare variables for main loop
+  let arrData = [];
+  let fiXiTotal = 0;
+  let countKumulativeUp = 0;
+  let countKumulativeDn = frequencyTotal;
 
+  //main loop
   arrKelompok.forEach((e, i) => {
-    const data = e.split("-");
-    const interval = parseInt(data[1]) - parseInt(data[0]) + 1;
-    const median = medianFinder(interval) + parseInt(data[0]) - 1;
-    console.log(median);
+    const split = e.split("-");
+    const interval = parseInt(split[1]) - parseInt(split[0]) + 1;
+    const median = medianFinder(interval) + parseInt(split[0]) - 1;
 
     //assign freq total and fixi total
     const fiXi = median * arrFrequency[i];
     fiXiTotal += fiXi;
-    frequencyTotal += arrFrequency[i];
 
-    //add each data to object
-    dataKelompok.push({
+    //tepiBawah dan tepiAtas
+    const tepiBawah = parseInt(split[0]) - 0.5;
+    const tepiAtas = parseInt(split[1]) + 0.5;
+
+    //counting comulative
+    countKumulativeUp += arrFrequency[i];
+    countKumulativeDn =
+      i === 0 ? frequencyTotal : (countKumulativeDn -= arrFrequency[i - 1]);
+
+    //assign relative frequency
+    const freqRel = (arrFrequency[i] / frequencyTotal) * 100;
+
+    //assign comulative frequency
+    const fkMin = countKumulativeUp;
+    const fkMax = countKumulativeDn;
+
+    //add each data to a object
+    arrData.push({
       data: e,
       interval,
+      tepiBawah,
+      tepiAtas,
       median,
       frequency: arrFrequency[i],
+      freqRel,
+      fkMin,
+      fkMax,
       fiXi,
     });
   });
 
+  ////////////////////////////////// Non main loop thread ////////////////////////////////////
+
   //mean thread
-  const meanResult = fiXiTotal / frequencyTotal;
+  const mean = meanKelompok(fiXiTotal, frequencyTotal);
 
   //median Kelompok thread
   const medianClass = medianFinder(frequencyTotal);
@@ -76,15 +136,13 @@ export function mainThread(arrKelompok, arrFrequency) {
   //find medianIndex and fK
   for (let index = 0; index < arrFrequency.length; index++) {
     freqKumulative += arrFrequency[index];
-    console.log(freqKumulative);
     if (medianClass <= freqKumulative) {
-      console.log("called", medianIndex);
       fK = freqKumulative - arrFrequency[index];
       medianIndex = index;
       break;
     }
   }
-  const medianResult = medianKelompok(
+  const median = medianKelompok(
     arrKelompok,
     arrFrequency,
     fK,
@@ -94,32 +152,39 @@ export function mainThread(arrKelompok, arrFrequency) {
 
   //modus Kelompok thread
   const modusIndex = arrFrequency.indexOf(Math.max(...arrFrequency));
-  const modusResult = modusKelompok(arrKelompok, arrFrequency, modusIndex);
+  const modus = modusKelompok(arrKelompok, arrFrequency, modusIndex);
 
   //deviasi rata rata
-  let fiXITotalAbs = 0;
-  dataKelompok.forEach((e, i) => {
-    fiXITotalAbs += Math.abs(e.median - meanResult) * arrFrequency[i];
-  });
-  const deviasiRataRata = fiXITotalAbs / frequencyTotal;
+  const deviasiRataRata = deviasiRataRataKelompok(
+    arrFrequency,
+    arrData,
+    mean,
+    frequencyTotal
+  );
 
   //devisai standard
-  let fiXITotal2 = 0;
-  dataKelompok.forEach((e, i) => {
-    fiXITotal2 += (e.median - meanResult) ** 2 * arrFrequency[i];
-  });
-  const deviasiStandard = Math.sqrt(fiXITotal2 / frequencyTotal);
+  const deviasiStandard = deviasiStandardKelompok(
+    arrFrequency,
+    arrData,
+    mean,
+    frequencyTotal
+  );
 
   //deviasi variasi
-  const deviasiVariasi = fiXITotal2 / frequencyTotal;
+  const deviasiVariasi = deviasiVariasiKelompok(
+    arrFrequency,
+    arrData,
+    mean,
+    frequencyTotal
+  );
 
   return {
-    dataKelompok,
+    arrData,
     frequencyTotal,
     fiXiTotal,
-    meanResult,
-    medianResult,
-    modusResult,
+    mean,
+    median,
+    modus,
     deviasiRataRata,
     deviasiStandard,
     deviasiVariasi,

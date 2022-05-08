@@ -5,12 +5,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="index.css" />
+    <script defer src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script defer src="index.js"></script>
-    <title>Document</title>
+    <title>Statiska Tugas</title>
   </head>
   <body>
     <main>
+      <h1 >Statiska v1.0</h1>
       <div class="wrapper flex column">
+        <div class="contentWrap">
+
+        
         <div id="box" class="box">
           <div>
             <input
@@ -18,29 +23,42 @@
               maxlength="7"
               type="text"
               required
+              placeholder="Data Kelompok, eg. '11-20'"
             />
             <input
               class="boxField frequency"
               type="number"
               maxlength="3"
               required
+              placeholder="Frequency"
             />
-            <button class="boxField" onclick="deleteElement(this)">Del</button>
+            <button class="boxField" onclick="deleteElement(this)">Delete</button>
           </div>
         </div>
         <div class="flex">
-          <select class="boxField" id="method">
-            <option value="mk">Mean Kelompok</option>
-          </select>
-          <button class="boxField" id="plus">add</button>
-          <button class="boxField" id="submit">submit</button>
+          <button class="boxField" id="plus">Add</button>
+          <button class="boxField" id="submit">Submit</button>
+        </div>
         </div>
       </div>
-    </main>
-    <section id="resultWrapper">
-      <div id="eachKelompok"></div>
-      <hr />
+        <section id="resultWrapper">
+      <h3>Hasil Tiap kelompok</h3>
+      <div id="eachKelompok">
+      </div>
+      <h3>Hasil</h3>
       <div id="finalResult"></div>
+      <h3>Chart</h3>
+      <div id="chartResult"></div>
+      <select  id="chartOption">
+        <option value="Ogive Plus">Ogive Plus</option>
+        <option value="Ogive Minus">Ogive Minus</option>
+        <option value="Ogive Relative">Ogive Relative</option>
+      </select>
+      <select id="chartType">
+        <option value="Garis">Garis</option>
+        <option value="Batang">Batang</option>
+      </select>
     </section>
+  
   </body>
 </html>
