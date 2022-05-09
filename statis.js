@@ -24,7 +24,7 @@ function medianKelompok(
   const tepiBawah = arrKelompok[medianIndex].split("-")[0] - 0.5;
   const result =
     tepiBawah +
-    (((1 / 2) * frequencyTotal - fK) / arrFrequency[medianIndex]) * interval;
+    (((1 / 2) * frequencyTotal - fK) * interval) / arrFrequency[medianIndex];
   return result;
 }
 
@@ -85,7 +85,7 @@ export function mainThreadKelompok(arrKelompok, arrFrequency) {
   arrKelompok.forEach((e, i) => {
     const split = e.split("-");
     const interval = parseInt(split[1]) - parseInt(split[0]) + 1;
-    const median = medianFinder(interval) + parseInt(split[0]) - 1;
+    const median = medianFinder(interval) + parseInt(split[0]);
 
     //assign freq total and fixi total
     const fiXi = median * arrFrequency[i];
@@ -110,15 +110,15 @@ export function mainThreadKelompok(arrKelompok, arrFrequency) {
     //add each data to a object
     arrData.push({
       data: e,
-      interval,
-      tepiBawah,
-      tepiAtas,
-      median,
       frequency: arrFrequency[i],
+      fiXi,
+      interval,
+      median,
+      tepiAtas,
+      tepiBawah,
       freqRel,
       fkMin,
       fkMax,
-      fiXi,
     });
   });
 
@@ -142,6 +142,7 @@ export function mainThreadKelompok(arrKelompok, arrFrequency) {
       break;
     }
   }
+
   const median = medianKelompok(
     arrKelompok,
     arrFrequency,

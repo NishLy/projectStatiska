@@ -1,13 +1,18 @@
-//////////////////////////////////Event Listeners function/////////////////////////////////////////
+//declaring varibales !important
+let arrData;
+const swictDataType = document.querySelector("#typeData");
 
-//create new form element
-const plus = document.querySelector("#plus");
+//declaring verb for draw moduls
+let draw;
+
+//////////////////////////////////Event Listeners function/////////////////////////////////////////
+//wrapper element
 const box = document.querySelector("#box");
-plus.addEventListener("click", () => {
-  const wrap = document.createElement("div");
-  wrap.innerHTML = `<input
+
+//element template
+const dataKelompokTemplate = `<input
             class="boxField data-kelompok"
-            maxlength="7"
+            maxlength="10"
             type="text"
             required
               placeholder="Data Kelompok, eg. '11-20'"
@@ -20,7 +25,89 @@ plus.addEventListener("click", () => {
             placeholder="Frequency"
           />
           <button class="boxField" onclick="deleteElement(this)">Delete</button>`;
-  box.appendChild(wrap);
+const dataTunggalTemplate = `<input type="text" class="boxField data-tunggal"  placeholder="Data, 11,12,13...">
+             <input type="text" class="boxField data-desil"  placeholder="Desil, 11,12,13...10">`;
+
+//drawing template
+const drawTemplate = (template) => {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = template;
+  return wrap;
+};
+
+//create new form element for data kelompok
+const plus = document.querySelector("#plus");
+plus.addEventListener("click", () => {
+  if (swictDataType.value === "kelompok")
+    box.appendChild(drawTemplate(dataKelompokTemplate));
+  else alert("Tipe Data Tunggal!");
+});
+
+//create element form for data Tunggal
+swictDataType.addEventListener("change", function () {
+  if (this.value === "kelompok") {
+    box.innerHTML = "";
+    box.appendChild(drawTemplate(dataKelompokTemplate));
+  } else {
+    box.innerHTML = "";
+    box.appendChild(drawTemplate(dataTunggalTemplate));
+  }
+});
+
+//submit, parsing data and data validation
+const submit = document.querySelector("#submit");
+submit.addEventListener("click", () => {
+  let error = false;
+  if (swictDataType.value === "kelompok") {
+    const Kelompok = document.querySelectorAll(".data-kelompok");
+    const arrKelompok = [];
+    Kelompok.forEach((e) => {
+      if (e.value === "" || !e.value.includes("-") || !isNaN(e.value)) {
+        alert("data kelompok salah");
+        return (error = true);
+      }
+      arrKelompok.push(e.value.replace(/\s+/g, ""));
+    });
+    const frequency = document.querySelectorAll(".frequency");
+    const arrFrequency = [];
+    frequency.forEach((e) => {
+      if (e.value === "" || isNaN(e.value)) {
+        alert("data frequnsi salah");
+        return (error = true);
+      }
+      arrFrequency.push(parseInt(e.value));
+    });
+    if (!error) main(arrKelompok, arrFrequency);
+  } else {
+    const tunggal = document.querySelector(".data-tunggal");
+    const desil = document
+      .querySelector(".data-desil")
+      .value.replace(/\s+/g, "")
+      .split(",");
+    tunggal.value.replace(/\s+/g, "");
+
+    const arrTunggal = tunggal.value.split(",");
+    let arrData = [];
+    arrTunggal.forEach((e) => {
+      arrData.push(parseFloat(e));
+    });
+
+    let arrDesil = [];
+    desil.forEach((e) => {
+      arrDesil.push(parseFloat(e));
+    });
+    if (!error) main(arrData, undefined, arrDesil);
+  }
+});
+
+//element for draw chart
+const chartOption = document.querySelector("#chartOption");
+chartOption.addEventListener("change", function (element) {
+  draw.drawChart(arrData, this.value, chartType.value);
+});
+const chartType = document.querySelector("#chartType");
+chartType.addEventListener("change", function (element) {
+  draw.drawChart(arrData, chartOption.value, this.value);
 });
 
 //delete form element
@@ -28,136 +115,26 @@ function deleteElement(element) {
   element.parentElement.remove();
 }
 
-//submit and data validation
-const submit = document.querySelector("#submit");
-submit.addEventListener("click", (method) => {
-  const Kelompok = document.querySelectorAll(".data-kelompok");
-  const arrData = [];
-  let error = false;
-
-  Kelompok.forEach((e) => {
-    if (e.value === "" || !e.value.includes("-") || !isNaN(e.value)) {
-      alert("data kelompok salah");
-      return (error = true);
-    }
-    arrData.push(e.value.replace(/\s+/g, ""));
-  });
-
-  const frequency = document.querySelectorAll(".frequency");
-  const dataFrequency = [];
-  frequency.forEach((e) => {
-    if (e.value === "" || isNaN(e.value)) {
-      alert("data frequnsi salah");
-      return (error = true);
-    }
-    dataFrequency.push(parseInt(e.value));
-  });
-
-  if (!error) main(arrData, dataFrequency, method);
-});
-
-const chartOption = document.querySelector("#chartOption");
-chartOption.addEventListener("change", function (element) {
-  printChart(arrData, this.value, chartType.value);
-});
-const chartType = document.querySelector("#chartType");
-chartType.addEventListener("change", function (element) {
-  printChart(arrData, chartOption.value, this.value);
-});
-
-////////////////////////////////// Main Functions //////////////////////////////////////////
-
+//////////////////////////////////main function/////////////////////////////////////////
 //main function
-async function main(arrKelompok, arrFrequency, method) {
-  if (
-    arrFrequency.length === 0 &&
-    arrKelompok.length === 0 &&
-    arrKelompok.length === arrFrequency.length
-  )
-    return false; // validate arrs
+async function main(arrData, arrFrequency, desilArr) {
+  //only call drawing module when here
+  draw = await import("./draw.js");
 
-  const { mainThreadKelompok } = await import("./statis.js");
-  const result = mainThreadKelompok(arrKelompok, arrFrequency);
-  print(result);
-}
-
-let arrData;
-
-//printing data
-function print(data) {
-  const dataKelompokWrap = document.querySelector("#eachKelompok");
-  const finalResult = document.querySelector("#finalResult");
-  let content = "";
-
-  //print each class
-  data.arrData.forEach((e) => {
-    let value = "";
-    for (let property in e) {
-      value += property + " : " + e[property] + "<br>";
-    }
-    content += `<div class="eachElementKelompok">${value}</div>`;
-  });
-  dataKelompokWrap.innerHTML = content;
-
-  //print final result
-  content = "";
-  for (let object in data) {
-    if (object === "arrData") continue;
-    content += `<h3>${object} : ${data[object].toFixed(2)}</h3>`;
+  //is Tunggal or Kelompok
+  if (typeof arrFrequency === "undefined") {
+    const { mainThreadTunggal } = await import("./statisTunggal.js");
+    const result = mainThreadTunggal(arrData, desilArr);
+    draw.draw(result);
+  } else {
+    if (
+      arrFrequency.length === 0 &&
+      arrData.length === 0 &&
+      arrData.length === arrFrequency.length
+    )
+      return false; // validate arrs
+    const { mainThreadKelompok } = await import("./statis.js");
+    const result = mainThreadKelompok(arrData, arrFrequency);
+    draw.draw(result);
   }
-
-  finalResult.innerHTML = content;
-
-  //char section
-  arrData = data.arrData;
-  printChart(data.arrData, "Ogive Plus", "Garis");
-}
-
-function printChart(arrData, chartOption, chartType) {
-  let xArr = [];
-  let yArr = [];
-
-  let yTitle = "";
-
-  if (chartOption === "Ogive Plus") {
-    arrData.forEach((element) => {
-      xArr.push(element.data);
-      yArr.push(element.fkMin);
-    });
-    yTitle = "frequensi Kumulatif Kurang dari";
-  } else if (chartOption === "Ogive Minus") {
-    arrData.forEach((element) => {
-      xArr.push(element.data);
-      yArr.push(element.fkMax);
-    });
-    yTitle = "frequensi Kumulatif Lebih dari";
-  } else if (chartOption === "Ogive Relative") {
-    arrData.forEach((element) => {
-      xArr.push(element.data);
-      yArr.push(element.freqRel);
-    });
-    yTitle = "frequensi Relative in %";
-  }
-
-  if (chartType === "Garis") chartType = "lines";
-  else if (chartType === "Batang") chartType = "bar";
-
-  // Define D
-  const data = [
-    {
-      x: xArr,
-      y: yArr,
-      type: chartType,
-    },
-  ];
-
-  // Define Layout
-  const layout = {
-    xaxis: { title: "Data Kelompok" },
-    yaxis: { title: yTitle },
-    title: chartOption,
-  };
-
-  // Display using Plotly
-  Plotly.newPlot("chartResult", data, layout);
 }
