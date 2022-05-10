@@ -1,7 +1,7 @@
 function medianFinder(interval) {
   let median;
   if (interval % 2 == 0) {
-    median = (interval / 2 + (interval / 2 + 1)) / 2;
+    median = (interval / 2 + (interval / 2 + 1)) / 2 - 1;
   } else {
     median = Math.floor(interval / 2);
   }
@@ -114,8 +114,8 @@ export function mainThreadKelompok(arrKelompok, arrFrequency) {
       fiXi,
       interval,
       median,
-      tepiAtas,
       tepiBawah,
+      tepiAtas,
       freqRel,
       fkMin,
       fkMax,
